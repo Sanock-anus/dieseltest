@@ -1,0 +1,54 @@
+document.addEventListener('DOMContentLoaded', () => {
+  const gameList = document.getElementById('gameList');
+  const uploadForm = document.getElementById('uploadForm');
+
+  // Function to fetch and display the list of games
+  function fetchGames() {
+    fetch('/games')
+      .then(response => response.json())
+      .then(games => {
+        gameList.innerHTML = ''; // Clear the list
+        games.forEach(game => {
+          const listItem = document.createElement('li');
+          listItem.textContent = game.name;
+          gameList.appendChild(listItem);
+        });
+      })
+      .catch(error => console.error('Error fetching games:', error));
+  }
+
+  // Event listener for the upload form
+  uploadForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    const gameName = document.getElementById('gameName').value;
+    const gameFile = document.getElementById('gameFile').files[0];
+
+    if (!gameName || !gameFile) {
+      alert('Please enter a game name and select a file.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('gameName', gameName);
+    formData.append('gameFile', gameFile);
+
+    fetch('/upload', {
+      method: 'POST',
+      body: formData,
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Game uploaded successfully!');
+          fetchGames(); // Refresh the game list
+        } else {
+          alert('Game upload failed: ' + data.message);
+        }
+      })
+      .catch(error => console.error('Error uploading game:', error));
+  });
+
+  // Initial fetch of games
+  fetchGames();
+});
